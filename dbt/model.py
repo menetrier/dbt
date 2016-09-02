@@ -9,7 +9,7 @@ import dbt.project
 
 class SourceConfig(object):
     Materializations = ['view', 'table', 'incremental', 'ephemeral']
-    ConfigKeys = ['enabled', 'materialized', 'dist', 'sort', 'sql_where', 'unique_key', 'sort_type']
+    ConfigKeys = ['enabled', 'materialized', 'dist', 'sort', 'sql_where', 'unique_key', 'sort_type', 'pre-hook', 'post-hook']
 
     def __init__(self, active_project, own_project, fqn):
         self.active_project = active_project
@@ -61,6 +61,10 @@ class SourceConfig(object):
             if level_config is None:
                 break
             relevant_configs = {key: level_config[key] for key in level_config if key in self.ConfigKeys}
+            for key in ['pre-hook', 'post-hook']:
+                if key in relevant_configs and type(relevant_configs[key]) == str:
+                    relevant_configs[key] = [relevant_configs[key]]
+
             config.update(relevant_configs)
             model_configs = model_configs[level]
 

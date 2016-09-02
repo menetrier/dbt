@@ -6,6 +6,7 @@ import os, sys
 import logging
 import time
 import itertools
+import jinja2
 
 from dbt.compilation import Compiler
 from dbt.linker import Linker
@@ -57,6 +58,50 @@ class BaseRunner(object):
 
     def pre_run_all(self, models):
         pass
+
+    def __interpolate(self, ctx, sql):
+        env = jinja2.Environment()
+        return env.from_string(sql).render(ctx)
+
+    def __context(self, model, result=None):
+        model_ctx = {
+            "this": '"{}"."{}"'.format(model.schema, model.name),
+            "materialization": model.materialization,
+        }
+
+        if result is None:
+            result_ctx = {}
+        else:
+            result_ctx = {
+                "error": result.errored,
+                "skipped": result.skipped,
+                "timing" : result.execution_time,
+                "status" : result.status,
+            }
+
+        ctx = {}
+        ctx.update(model_ctx)
+        ctx.update(result_ctx)
+
+        return ctx
+
+    def run_hook(self, schema, model, result, hook_key):
+        if hook_key not in model.data:
+            return
+
+        ctx = self.__context(model, result)
+        for stmt in model.data[hook_key]:
+            sql = self.__interpolate(ctx, stmt)
+            try:
+                schema.execute(sql)
+            except psycopg2.ProgrammingError as e:
+                raise RuntimeError("Error while processing {} for {}\n  {}\nERROR: {}".format(hook_key, model.name, sql, str(e)))
+
+    def pre_run(self, schema, model):
+        self.run_hook(schema, model, None, 'pre-hook')
+
+    def post_run(self, schema, res):
+        self.run_hook(schema, res.model, res, 'post-hook')
 
     def status(self, result):
         raise NotImplementedError("not implemented")
@@ -322,6 +367,7 @@ class RunManager(object):
             models_to_execute = [model for model in model_list if not model.should_skip()]
 
             for i, model in enumerate(models_to_execute):
+                runner.pre_run(self.schema, model)
                 msg = runner.pre_run_msg(model)
                 self.print_fancy_output_line(msg, 'RUN', get_idx(model), num_models)
 
@@ -331,6 +377,7 @@ class RunManager(object):
             for i, run_model_result in enumerate(run_model_results):
                 model_results.append(run_model_result)
 
+                runner.post_run(self.schema, run_model_result)
                 msg = runner.post_run_msg(run_model_result)
                 status = runner.status(run_model_result)
                 self.print_fancy_output_line(msg, status, get_idx(run_model_result.model), num_models, run_model_result.execution_time)
