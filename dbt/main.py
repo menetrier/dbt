@@ -14,6 +14,10 @@ import dbt.task.init as init_task
 import dbt.task.seed as seed_task
 import dbt.task.test as test_task
 
+import dbt.task.hosted.hosted as hosted_task
+import dbt.task.hosted.auth as hosted_auth_task
+import dbt.task.hosted.initialize as hosted_initialize_task
+
 def main(args=None):
     if args is None:
         args = sys.argv[1:]
@@ -65,6 +69,12 @@ def handle(args):
     sub.add_argument('--validate', action='store_true', help='Run constraint validations from schema.yml files')
     sub.set_defaults(cls=test_task.TestTask, which='test')
 
+    sub = subs.add_parser('hosted-auth', parents=[base_subparser])
+    sub.set_defaults(cls=hosted_auth_task.HostedAuthTask, which='hosted.auth')
+
+    sub = subs.add_parser('hosted-initialize', parents=[base_subparser])
+    sub.set_defaults(cls=hosted_initialize_task.HostedInitializeTask, which='hosted.initialize')
+
     if len(args) == 0: return p.print_help()
 
     parsed = p.parse_args(args)
@@ -105,5 +115,6 @@ def handle(args):
 
     else:
         raise RuntimeError("dbt must be run from a project root directory with a dbt_project.yml file")
+
 
 
