@@ -2,10 +2,6 @@
 import requests
 import webbrowser
 import threading
-
-from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
-from SocketServer import ThreadingMixIn
-
 import os.path
 import yaml
 
@@ -16,32 +12,6 @@ DBT_HOST_FILE = os.path.join(DBT_DIR, HOST_FILENAME)
 #APP_URL = 'http://hosted-dbt.appspot.com/'
 APP_URL = "http://127.0.0.1:8000/"
 API_URL = "{}api/v1".format(APP_URL)
-
-LISTEN_PORT = 8088
-
-response_data = {
-    'handled': False
-}
-
-class RequestHandler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        #import ipdb; ipdb.set_trace()
-        #contents = self.rfile.read(int(self.headers['Content-Length']))
-        #response_data['access_token'] = contents
-
-        self.send_response(200)
-        self.send_header("Content-type", "text/html")
-        self.end_headers()
-
-        self.wfile.write('Hello world')
-
-        response_data['handled'] = True
-
-    def log_request(self, code=None, size=None):
-        print('Request')
-
-    def log_message(self, format, *args):
-        print('Message')
 
 class DbtAPI(object):
     def __init__(self):
@@ -67,6 +37,30 @@ class DbtAPI(object):
     def get_current_user(self):
         pass
 
+    def create_or_update_active_profiles(self, project):
+        for profile_name in project.active_profile_names:
+            print "Pushing configuration for profile {}.".format(profile_name)
+
+            profile = project.profiles[profile_name]
+
+            targets = profile['outputs']
+            for name, values in targets.iteritems():
+                print "Found target {}, pushing.".format(name)
+
+                to_send = values
+                to_send['name'] = name
+                to_send['password'] = to_send['pass']
+                to_send['dbtype'] = to_send['type']
+                del to_send['pass']
+                del to_send['type']
+
+                r = requests.post('{}/profiles/'.format(API_URL),
+                                  headers=self.headers(),
+                                  data=to_send)
+
+                print r.__dict__
+        return None
+
     def get_token(self):
         if os.path.exists(DBT_HOST_FILE):
             with open(DBT_HOST_FILE, "r") as fh:
@@ -86,17 +80,7 @@ class DbtAPI(object):
             yaml.dump(data, fh)
 
     def authenticate(self):
-        server = HTTPServer(('localhost', LISTEN_PORT), RequestHandler)
-
         if not webbrowser.open_new(APP_URL):
             raise RuntimeError("Couldn't open web browser")
 
-        server.handle_request()
-
-        if response_data.get('access_token', "") == "":
-            raise RuntimeError("Bad access token: {}".format(response_data.get('access_token')))
-
-        token = response_data['access_token']
-        self.set_token(token)
-
-        return token
+        return None
