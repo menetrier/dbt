@@ -7,15 +7,24 @@ import re
 from dbt.hosted.api import DbtAPI
 
 class HostedInitializeTask:
-    def __init__(self, args, project):
+    def __init__(self, args):
         self.args = args
-        self.project = project
 
     def run(self):
         api = DbtAPI()
-        org, repo = self.__get_remote()
 
-        print org, repo
+        key = api.ensure_token_set()
+
+        if not key:
+            return "Failed to get a valid token."
+
+        remote = self.__get_remote()
+
+        # TODO: verify we are in a dbt project
+
+        project = api.get_or_create_project(
+            remote
+        )
 
     def __parse(self, remote):
         name = None
@@ -39,5 +48,4 @@ class HostedInitializeTask:
         if len(err) > 0:
             raise RuntimeError(err.strip())
 
-        github_url = out.strip()
-        return self.__parse(github_url)
+        return out

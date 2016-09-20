@@ -17,27 +17,58 @@ class DbtAPI(object):
     def __init__(self):
         self.token = self.get_token()
 
+    def get_token(self):
+        if os.path.exists(DBT_HOST_FILE):
+            with open(DBT_HOST_FILE, "r") as fh:
+                data = yaml.safe_load(fh)
+                return data.get('access_token', None)
+        else:
+            return None
+
+    def ensure_token_set(self):
+        key = self.get_token()
+
+        if key:
+            return key
+
+        token = raw_input("Set an API token: ")
+
+        self.set_token(token)
+
+    def set_token(self, token):
+        self.token = token
+
+        if not os.path.exists(DBT_DIR):
+            os.mkdir(DBT_DIR)
+
+        with open(DBT_HOST_FILE, "w") as fh:
+            data = {"access_token": token}
+            yaml.dump(data, fh)
+
     def headers(self):
         return {"Authorization": "Token {}".format(self.token)}
 
-    def get_or_create_account(self, org):
+    def get_or_create_project(self, repo):
+        if not self.get_token():
+            print "No token found, please log in and get your API token"
+            return
+
         data = {
-            "name": org
+            "github_repo": repo,
         }
 
-        r = requests.post('{}/accounts/'.format(API_URL), headers=self.headers(), data=data)
-        return r.json()
+        r = requests.post(
+            '{}/projects/'.format(API_URL),
+            headers=self.headers(),
+            json=data)
 
-    def get_or_create_project(self, repo, account_id):
-        pass
-
-    def get_or_create_user_permission(self):
-        pass
-
-    def get_current_user(self):
-        pass
+        return r.json
 
     def create_or_update_active_profiles(self, project):
+        if not self.get_token():
+            print "No token found, please log in and get your API token"
+            return
+
         for profile_name in project.active_profile_names:
             print "Pushing configuration for profile {}.".format(profile_name)
 
@@ -60,24 +91,6 @@ class DbtAPI(object):
 
                 print r.__dict__
         return None
-
-    def get_token(self):
-        if os.path.exists(DBT_HOST_FILE):
-            with open(DBT_HOST_FILE, "r") as fh:
-                data = yaml.safe_load(fh)
-                return data.get('access_token', None)
-        else:
-            return None
-
-    def set_token(self, token):
-        self.token = token
-
-        if not os.path.exists(DBT_DIR):
-            os.mkdir(DBT_DIR)
-
-        with open(DBT_HOST_FILE, "w") as fh:
-            data = {"access_token": token}
-            yaml.dump(data, fh)
 
     def authenticate(self):
         if not webbrowser.open_new(APP_URL):
