@@ -151,8 +151,6 @@ def handle(args):
 
     else:
         raise RuntimeError("dbt must be run from a project root directory with a dbt_project.yml file")
-<<<<<<< HEAD
-=======
 
     dbt.tracking.track_invocation_start(project=proj, args=parsed)
     try:
@@ -161,4 +159,3 @@ def handle(args):
     except Exception as e:
         dbt.tracking.track_invocation_end(project=proj, args=parsed, result_type="error", result=str(e))
         raise e
->>>>>>> a245bd7c3189183b60846b5d05457805de57373a

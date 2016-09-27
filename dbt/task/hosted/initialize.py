@@ -20,11 +20,16 @@ class HostedInitializeTask:
 
         remote = self.__get_remote()
 
-        # TODO: verify we are in a dbt project
+        if not remote:
+            print "Failed -- not in a git repo."
+            return
 
         project = api.get_or_create_project(
             remote
         )
+
+        if not project:
+            print "Failed."
 
     def __parse(self, remote):
         name = None
@@ -48,4 +53,4 @@ class HostedInitializeTask:
         if len(err) > 0:
             raise RuntimeError(err.strip())
 
-        return out
+        return out.strip()

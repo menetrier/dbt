@@ -9,7 +9,7 @@ DBT_DIR = os.path.join(os.path.expanduser('~'), '.dbt/')
 HOST_FILENAME = "host.yml"
 DBT_HOST_FILE = os.path.join(DBT_DIR, HOST_FILENAME)
 
-APP_URL = "http://app-543871608.us-east-1.elb.amazonaws.com/"
+APP_URL = "http://app.getdbt.com/"
 API_URL = "{}api/v1".format(APP_URL)
 
 class DbtAPI(object):
@@ -56,12 +56,18 @@ class DbtAPI(object):
             "github_repo": repo,
         }
 
+        print 'Making request to: {}/projects/'.format(API_URL)
+
         r = requests.post(
             '{}/projects/'.format(API_URL),
             headers=self.headers(),
             json=data)
 
-        return r.json
+        if r.status_code is 200:
+            return r.json
+        else:
+            print "Encountered an error!"
+            return None
 
     def create_or_update_active_profiles(self, project):
         if not self.get_token():
