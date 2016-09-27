@@ -29,6 +29,11 @@ def is_opted_out():
     else:
         return False
 
+import dbt.task.hosted.hosted as hosted_task
+import dbt.task.hosted.auth as hosted_auth_task
+import dbt.task.hosted.initialize as hosted_initialize_task
+import dbt.task.hosted.push as hosted_push_task
+
 def main(args=None):
     if args is None:
         args = sys.argv[1:]
@@ -85,6 +90,17 @@ def handle(args):
     sub.add_argument('--validate', action='store_true', help='Run constraint validations from schema.yml files')
     sub.set_defaults(cls=test_task.TestTask, which='test')
 
+    sub = subs.add_parser('hosted')
+    hosted_sub = sub.add_subparsers(help='Hosted DBT commands')
+
+    hosted_login = hosted_sub.add_parser('login')
+    hosted_login.set_defaults(
+        cls=hosted_auth_task.HostedAuthTask, which='hosted login')
+
+    hosted_push = hosted_sub.add_parser('push', parents=[base_subparser])
+    hosted_push.set_defaults(
+        cls=hosted_push_task.HostedPushTask, which='hosted push')
+
     if len(args) == 0: return p.print_help()
 
     parsed = p.parse_args(args)
@@ -92,7 +108,7 @@ def handle(args):
     task = None
     proj = None
 
-    if parsed.which == 'init':
+    if parsed.which == 'init' or parsed.which == 'hosted login':
         # bypass looking for a project file if we're running `dbt init`
         task = parsed.cls(args=parsed)
 
