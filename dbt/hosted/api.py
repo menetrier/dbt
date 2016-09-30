@@ -13,6 +13,11 @@ DBT_HOST_FILE = os.path.join(DBT_DIR, HOST_FILENAME)
 APP_URL = "http://app.getdbt.com/"
 API_URL = "{}api/v1".format(APP_URL)
 
+try:
+    input = raw_input
+except NameError:
+    pass
+
 class DbtAPI(object):
     def __init__(self):
         self.token = self.get_token()
@@ -31,7 +36,7 @@ class DbtAPI(object):
         if key:
             return key
 
-        token = raw_input("Set an API token: ")
+        token = input("Set an API token: ")
 
         self.set_token(token)
 
