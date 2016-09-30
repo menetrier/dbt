@@ -6,4 +6,5 @@ class HostedTask:
         self.project = project
 
     def run(self):
-        print "running hosted!!"
+        # TODO: Remove this, obviously
+        print("running hosted!!")

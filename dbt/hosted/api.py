@@ -39,13 +39,13 @@ class DbtAPI(object):
 
     def create_or_update_active_profiles(self, project):
         for profile_name in project.active_profile_names:
-            print "Pushing configuration for profile {}.".format(profile_name)
+            print("Pushing configuration for profile {}.".format(profile_name))
 
             profile = project.profiles[profile_name]
 
             targets = profile['outputs']
             for name, values in targets.iteritems():
-                print "Found target {}, pushing.".format(name)
+                print("Found target {}, pushing.".format(name))
 
                 to_send = values
                 to_send['name'] = name
@@ -58,7 +58,7 @@ class DbtAPI(object):
                                   headers=self.headers(),
                                   data=to_send)
 
-                print r.__dict__
+                print(r.__dict__)
         return None
 
     def get_token(self):

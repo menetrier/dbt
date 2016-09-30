@@ -8,6 +8,6 @@ class HostedAuthTask:
     def run(self):
         api = DbtAPI()
         if api.token is not None:
-            print "Already authenticatd!"
+            print("Already authenticatd!")
         else:
             api.authenticate()

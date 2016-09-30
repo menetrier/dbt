@@ -15,7 +15,7 @@ class HostedInitializeTask:
         api = DbtAPI()
         org, repo = self.__get_remote()
 
-        print org, repo
+        print(org, repo)
 
     def __parse(self, remote):
         name = None

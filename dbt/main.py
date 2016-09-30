@@ -29,7 +29,7 @@ def is_opted_out():
     else:
         return False
 
-import dbt.task.hosted.hosted as hosted_task
+#import dbt.task.hosted.hosted as hosted_task
 import dbt.task.hosted.auth as hosted_auth_task
 import dbt.task.hosted.initialize as hosted_initialize_task
 import dbt.task.hosted.push as hosted_push_task
