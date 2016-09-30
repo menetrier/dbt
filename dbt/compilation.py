@@ -112,8 +112,8 @@ class Compiler(object):
             src_fqn = ".".join(source_model)
             ref_fqn = ".".join(other_model_fqn)
 
-            if not self.model_can_reference(model, other_model):
-                compiler_error(model, "Model '{}' exists but cannot be referenced from dependency model '{}'".format(ref_fqn, src_fqn))
+            #if not self.model_can_reference(model, other_model):
+            #    compiler_error(model, "Model '{}' exists but cannot be referenced from dependency model '{}'".format(ref_fqn, src_fqn))
 
             if not other_model.is_enabled:
                 raise RuntimeError("Model '{}' depends on model '{}' which is disabled in the project config".format(src_fqn, ref_fqn))
@@ -150,8 +150,8 @@ class Compiler(object):
         context['ref'] = self.__ref(linker, context, model, models)
         context['config'] = self.__model_config(model, linker)
         context['this'] = This(context['env']['schema'], model.immediate_name, model.name)
-        context['var'] = Var(model)
         context['compiled_at'] = time.strftime('%Y-%m-%d %H:%M:%S')
+        context['var'] = Var(model, context=context)
         return context
 
     def compile_model(self, linker, model, models):
@@ -201,10 +201,10 @@ class Compiler(object):
         # these newlines are important -- comments could otherwise interfere w/ query
         cte_stmts = [" {} as (\n{}\n)".format(name, contents) for (name, contents) in cte_mapping]
 
-        cte_text = ", ".join(cte_stmts)
+        cte_text = sqlparse.sql.Token(sqlparse.tokens.Keyword, ", ".join(cte_stmts))
         parsed.insert_after(with_stmt, cte_text)
 
-        return sqlparse.format(str(parsed), keyword_case='lower', reindent=True)
+        return str(parsed)
 
     def __recursive_add_ctes(self, linker, model):
         if model not in linker.cte_map:
