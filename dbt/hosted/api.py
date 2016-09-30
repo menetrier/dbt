@@ -10,7 +10,7 @@ HOST_FILENAME = "host.yml"
 DBT_HOST_FILE = os.path.join(DBT_DIR, HOST_FILENAME)
 
 #APP_URL = 'http://hosted-dbt.appspot.com/'
-APP_URL = "http://127.0.0.1:8000/"
+APP_URL = "http://app.getdbt.com/"
 API_URL = "{}api/v1".format(APP_URL)
 
 class DbtAPI(object):
