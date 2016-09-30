@@ -97,6 +97,10 @@ def handle(args):
     hosted_login.set_defaults(
         cls=hosted_auth_task.HostedAuthTask, which='hosted login')
 
+    hosted_push = hosted_sub.add_parser('init')
+    hosted_push.set_defaults(
+        cls=hosted_initialize_task.HostedInitializeTask, which='hosted init')
+
     hosted_push = hosted_sub.add_parser('push', parents=[base_subparser])
     hosted_push.set_defaults(
         cls=hosted_push_task.HostedPushTask, which='hosted push')
@@ -108,7 +112,8 @@ def handle(args):
     task = None
     proj = None
 
-    if parsed.which == 'init' or parsed.which == 'hosted login':
+    if parsed.which == 'init' or parsed.which == 'hosted login' \
+       or parsed.which == 'hosted init':
         # bypass looking for a project file if we're running `dbt init`
         task = parsed.cls(args=parsed)
 

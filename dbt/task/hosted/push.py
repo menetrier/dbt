@@ -9,9 +9,4 @@ class HostedPushTask:
 
     def run(self):
         api = DbtAPI()
-
-        if not api.get_token():
-            print("No token found -- please log in and get your API token.")
-            return
-
         api.create_or_update_active_profiles(self.project)
