@@ -47,4 +47,4 @@ class HostedInitializeTask:
         if len(err) > 0:
             raise RuntimeError(err.strip())
 
-        return out.strip()
+        return out.strip().decode('utf-8')
