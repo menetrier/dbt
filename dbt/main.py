@@ -33,6 +33,7 @@ def is_opted_out():
 import dbt.task.hosted.auth as hosted_auth_task
 import dbt.task.hosted.initialize as hosted_initialize_task
 import dbt.task.hosted.push as hosted_push_task
+import dbt.task.hosted.configure as hosted_configure_task
 
 def main(args=None):
     if args is None:
@@ -97,9 +98,13 @@ def handle(args):
     hosted_login.set_defaults(
         cls=hosted_auth_task.HostedAuthTask, which='hosted login')
 
-    hosted_push = hosted_sub.add_parser('init')
-    hosted_push.set_defaults(
+    hosted_init = hosted_sub.add_parser('init')
+    hosted_init.set_defaults(
         cls=hosted_initialize_task.HostedInitializeTask, which='hosted init')
+
+    hosted_configure = hosted_sub.add_parser('configure')
+    hosted_configure.set_defaults(
+        cls=hosted_configure_task.HostedConfigureTask, which='hosted configure')
 
     hosted_push = hosted_sub.add_parser('push', parents=[base_subparser])
     hosted_push.set_defaults(
@@ -113,8 +118,8 @@ def handle(args):
     proj = None
 
     if parsed.which == 'init' or parsed.which == 'hosted login' \
-       or parsed.which == 'hosted init':
-        # bypass looking for a project file if we're running `dbt init`
+       or parsed.which == 'hosted init' or parsed.which == 'hosted configure':
+        # bypass looking for a project file if we're running certain dbt cmds
         task = parsed.cls(args=parsed)
 
     elif os.path.isfile('dbt_project.yml'):

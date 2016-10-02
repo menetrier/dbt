@@ -13,10 +13,7 @@ class HostedInitializeTask:
     def run(self):
         api = DbtAPI()
 
-        key = api.ensure_token_set()
-
-        if not key:
-            return "Failed to get a valid token."
+        api.fail_if_not_configured()
 
         remote = self.__get_remote()
 
@@ -27,9 +24,6 @@ class HostedInitializeTask:
         project = api.get_or_create_project(
             remote
         )
-
-        if not project:
-            print("Failed.")
 
     def __parse(self, remote):
         name = None
